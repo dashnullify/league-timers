@@ -7,12 +7,13 @@ import com.merakianalytics.orianna.types.core.spectator.CurrentMatchTeam;
 import com.merakianalytics.orianna.types.core.spectator.Player;
 import com.merakianalytics.orianna.types.core.summoner.Summoner;
 import me.brennan.timers.filemanager.FileManager;
+import me.brennan.timers.objects.Champion;
+import me.brennan.timers.ui.OverlayFrame;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * made for LOLTimers
@@ -24,11 +25,7 @@ public enum Timers {
     INSTANCE;
 
     private String apiKey, username;
-
     public FileManager fileManager;
-
-    private Timer timer = new Timer();
-
     private CurrentMatchTeam currentTeam;
 
     public void start() throws Exception {
@@ -46,7 +43,7 @@ public enum Timers {
             setApiKey(apiKeyReturned);
             fileManager.save();
         }
-        Orianna.setRiotAPIKey(apiKey);
+        Orianna.setRiotAPIKey(getApiKey());
         Orianna.setDefaultRegion(Region.NORTH_AMERICA);
 
         final Summoner summoner = Orianna.summonerNamed(getUsername()).get();
@@ -54,33 +51,35 @@ public enum Timers {
 
         if(currentMatch != null) {
             final List<Player> playerList = currentMatch.getParticipants();
+            final List<Champion> champions = new LinkedList<>();
 
             playerList
                     .stream()
                     .filter(player -> player.getSummoner().getName().equalsIgnoreCase(summoner.getName()))
                     .forEach(player -> currentTeam = player.getTeam());
 
-            //to keep updating the cooldowns :)
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    for(Player player : playerList) {
-                        if(player.getTeam() != currentTeam) {
-                            System.out.println(String.format("----------[%s]----------", player.getChampion()));
-                            System.out.println(player.getChampion());
-                            System.out.println(player.getSummonerSpellD().getName());
-                            System.out.println(player.getSummonerSpellD().getCooldowns().size());
-                            System.out.println(player.getSummonerSpellF().getName());
-                            System.out.println(player.getSummonerSpellF().getCooldowns().size());
-                            System.out.println("--------------------");
-                        }
-                    }
+            for(Player player : playerList) {
+                if(player.getTeam() != currentTeam) {
+                    System.out.println(String.format("----------[%s]----------", player.getChampion().getName()));
+                    System.out.println(player.getChampion());
+                    System.out.println(player.getSummonerSpellD().getName());
+                    System.out.println(player.getSummonerSpellD().getCooldowns().size());
+                    System.out.println(player.getSummonerSpellF().getName());
+                    System.out.println(player.getSummonerSpellF().getCooldowns().size());
+                    System.out.println("--------------------");
+
+                    final Champion champion = new Champion(player.getChampion().getName(), player.getSummonerSpellD(), player.getSummonerSpellF());
+                    champions.add(champion);
                 }
-            }, 2, 5);
+            }
+
+            new OverlayFrame(champions);
         } else {
             System.out.println("Not in a game.");
         }
     }
+
+
 
     public void setUsername(String username) {
         this.username = username;
@@ -97,4 +96,5 @@ public enum Timers {
     public String getApiKey() {
         return apiKey;
     }
+
 }
