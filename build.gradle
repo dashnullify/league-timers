@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+group 'me.brennan'
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.google.code.gson:gson:+'
+    compile "com.merakianalytics.orianna:orianna:3.0.4"
+}
